@@ -2,7 +2,8 @@ const apiOrigin='https://zernio.com';
 const apiPath=/^\/api\/v1\/(?:accounts|media\/presign|posts(?:\/[0-9a-f]{24})?)$/i;
 const policy=(ok,msg)=>{if(!ok)throw Error(msg);};
 const urlSafe=(x)=>{const u=new URL(x);policy(u.protocol==='https:'&&!u.port&&!u.username&&!u.password&&!u.hash,'Invalid upload URL origin');return u;};
-export function makeZernio({key,send=fetch,storageHost}){
+export function makeZernio({key,send,storageHost}){
+  policy(typeof send === "function" && send !== globalThis.fetch, "Explicit injected transport required");
   policy(typeof key==='string'&&/^[A-Za-z0-9_.-]{12,256}$/.test(key),'Invalid or missing scoped credential');
   policy(typeof storageHost==='string'&&/^[a-f0-9]{32}\.r2\.cloudflarestorage\.com$/.test(storageHost),'Pin the confirmed Zernio R2 hostname before enabling uploads');
   async function request(p,{method='GET',body,requestId,query}={}){

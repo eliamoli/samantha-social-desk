@@ -1,0 +1,54 @@
+{
+  "manifest_version": "0.3",
+  "name": "samantha-social-desk-chat-pilot",
+  "display_name": "Samantha Social Desk",
+  "version": "0.4.0",
+  "description": "Local reel review and offline mock drafts inside ordinary Claude Desktop Chat.",
+  "author": {
+    "name": "Bridgerow"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "chat-pilot/server/index.mjs",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/chat-pilot/server/index.mjs",
+        "${user_config.pilot_mode}",
+        "${user_config.approved_folder}",
+        "${user_config.approval_probe}"
+      ]
+    }
+  },
+  "user_config": {
+    "pilot_mode": {
+      "type": "string",
+      "title": "Offline pilot mode",
+      "description": "Leave off for previews only. Enter mock for synthetic drafts or mock-timeout for synthetic recovery testing. No live mode exists.",
+      "required": false,
+      "default": "off"
+    },
+    "approved_folder": {
+      "type": "directory",
+      "title": "Approved reel review folder (optional)",
+      "description": "One read-only folder. Cover and caption requested in Chat are shared with Claude; no video bytes are transmitted.",
+      "required": false
+    },
+    "approval_probe": {
+      "type": "string",
+      "title": "Optional native approval probe",
+      "description": "Enter on for the synthetic no-write approval probe. Leave off normally.",
+      "required": false,
+      "default": "off"
+    }
+  },
+  "tools_generated": true,
+  "compatibility": {
+    "platforms": [
+      "darwin"
+    ],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

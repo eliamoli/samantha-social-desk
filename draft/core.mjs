@@ -94,9 +94,9 @@ export function verifyTarget(accounts,v){
   ensure(found.length===1&&accountId(found[0].profileId)===v.profileId&&found[0].platform===v.platform&&found[0].username===v.username&&found[0].isActive!==false&&found[0].enabled!==false,'Account is not the exact active Samantha destination. Stop.');
 }
 export function verifyDraft(p,body,draftId){
-  ensure(p&&accountId(p)===draftId&&p.status==='draft'&&p.scheduledFor==null&&p.publishedAt==null&&p.content===body.content,'Provider readback did not prove exact unscheduled draft');
+  ensure(p&&accountId(p)===draftId&&p.status==='draft'&&p.scheduledFor==null&&p.publishedAt==null&&p.publishNow!==true&&p.queuedFromProfile==null&&p.queueId==null&&p.content===body.content,'Provider readback did not prove exact unscheduled draft');
   const [target]=p.platforms??[], exp=body.platforms[0], media=p.mediaItems?.[0], wanted=body.mediaItems[0];
-  ensure(p.platforms?.length===1&&target.platform===exp.platform&&accountId(target.accountId)===exp.accountId&&target.scheduledFor==null&&!target.platformPostUrl&&!target.platformPostId&&target.publishedAt==null,'Provider target did not match exact draft destination');
+  ensure(p.platforms?.length===1&&target.platform===exp.platform&&accountId(target.accountId)===exp.accountId&&target.scheduledFor==null&&!target.platformPostUrl&&!target.platformPostId&&target.publishedAt==null&&target.customContent==null&&(!target.customMedia||target.customMedia.length===0),'Provider target did not match exact draft destination');
   ensure(p.mediaItems?.length===1&&media.url===wanted.url&&media.type==='video','Provider did not return exact video');
   ensure(Object.entries(exp.platformSpecificData).every(([k,val])=>target.platformSpecificData?.[k]===val)&&(!wanted.thumbnail||media.thumbnail===wanted.thumbnail),'Provider did not return exact reel settings and cover');
 }

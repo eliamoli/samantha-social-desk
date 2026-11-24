@@ -2,6 +2,7 @@
 Private Samantha-only Mac pilot. Do not copy Bridgerow's account, profile, credentials, posting history or schedules.
 
 ## Readiness
+- **Consolidated v0.4.0:** see [Install and test in ordinary Claude Chat](chat-pilot/INSTALL.md). Local folder reviews are opt-in and read-only. Mock draft and native approval rehearsal remain separate from real file review. No live provider code is in the bundle.
 - Offline MCPB preview emits a synthetic PNG, sample caption and Halifax time, plus a second simulated in-chat draft report, as ordinary MCP image/text. See [Mac Chat verification](preview/README.md). Install and presentation on a real Mac have not been verified.
 - Draft-only core, provider adapter and Mac Keychain helper are mock-tested, not wired to either Chat or the pilot CLI. No live credentials, uploads, schedules or publishing were used.
 - The pilot CLI reviews one exact local draft package without external calls; it is a developer fixture, never part of Samantha’s workflow. Node 22+, no npm dependencies or install steps. Run tests with: npm test.
