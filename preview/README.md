@@ -1,0 +1,9 @@
+# Offline desktop preview, v0.2.0
+
+Use a current Claude Desktop on Mac. Install the supplied unsigned local bundle via Settings → Extensions → Advanced Settings → Install Extension (or open the file directly if your Desktop version offers that). Only install this bundle after verifying its hash and reviewing the source. Org policy may block local extensions. No sign-in to Zernio, API key, or Drive path is requested.
+
+Open a normal new **Chat**, not Cowork. Ensure the preview extension is enabled. Ask: “Run preview_samantha_reel and show the synthetic cover, sample caption and Halifax time right here. Don’t draft or publish anything.” Verify the cream/burgundy cover, full caption and Friday Dec 4 at 10:30 a.m. AST all appear or are retrievable in the tool result. If the image is omitted, open the tool result and/or use the separately supplied dummy-cover.png. Ask for the text-only fallback with textOnly true. The same time is 14:30 UTC. If the tool is not available in normal Chat, record the Desktop version and stop; skip Cowork and do not work around an organization restriction. Remove the preview under Settings → Extensions when done if desired.
+
+The extension only reads a bundled synthetic PNG and replies through local standard input/output. It never opens a socket, reads personal files, or writes. Claude Desktop itself may process tool results in its service; this bundle contains only dummy data. Rich-card rendering in normal Claude Chat is not claimed: the protocol uses standard text and image content.
+
+In that same Chat ask: “Call simulate_samantha_draft_report and show me the result for Instagram and Facebook. This is a mock.” Verify it says SIMULATION ONLY / NO DRAFT CREATED and reports neither scheduling nor publication. There is no separate app, terminal command, browser window, or Cowork step.

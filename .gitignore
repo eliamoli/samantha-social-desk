@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env*
+*.key
+*.mp4
+*.m4v
+*.mov
+*.log
+private/
+state/
+*.mcpb
+*.pem
+*.p12
+config.json
+*.receipt.json
+approved/
+.DS_Store

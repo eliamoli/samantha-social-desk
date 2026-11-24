@@ -1,0 +1,38 @@
+{
+  "manifest_version": "0.3",
+  "name": "samantha-social-desk-preview",
+  "display_name": "Samantha Social Desk Preview",
+  "version": "0.2.0",
+  "description": "Offline synthetic preview and mock draft report for normal Claude Desktop Chat.",
+  "author": {
+    "name": "Bridgerow"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.cjs",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/index.cjs"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "preview_samantha_reel",
+      "description": "Show a synthetic reel cover, caption, and Halifax time; offline only."
+    },
+    {
+      "name": "simulate_samantha_draft_report",
+      "description": "Return a synthetic draft-only report for both destinations; no state, credentials, upload, account, or provider call."
+    }
+  ],
+  "compatibility": {
+    "platforms": [
+      "darwin"
+    ],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}
