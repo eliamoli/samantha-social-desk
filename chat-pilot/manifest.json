@@ -2,8 +2,8 @@
   "manifest_version": "0.3",
   "name": "samantha-social-desk-chat-pilot",
   "display_name": "Samantha Social Desk",
-  "version": "0.4.0",
-  "description": "Local reel review and offline mock drafts inside ordinary Claude Desktop Chat.",
+  "version": "0.5.0",
+  "description": "Local reel preview and optional approved media transfer inside ordinary Claude Desktop Chat.",
   "author": {
     "name": "Bridgerow"
   },
@@ -17,7 +17,12 @@
         "${user_config.pilot_mode}",
         "${user_config.approved_folder}",
         "${user_config.approval_probe}"
-      ]
+      ],
+      "env": {
+        "SAMANTHA_TRANSFER_ENABLED": "${user_config.transfer_enabled}",
+        "SAMANTHA_TRANSFER_CONFIG": "${user_config.transfer_config}",
+        "SAMANTHA_TRANSFER_KEY": "${user_config.transfer_key}"
+      }
     }
   },
   "user_config": {
@@ -31,7 +36,7 @@
     "approved_folder": {
       "type": "directory",
       "title": "Approved reel review folder (optional)",
-      "description": "One read-only folder. Cover and caption requested in Chat are shared with Claude; no video bytes are transmitted.",
+      "description": "Exact read-only approved folder, including Drive for desktop synced bytes. Local reviews share captions/covers with Claude. Optional transfer sends only approved MP4/PNG pairs to Zernio after native confirmation.",
       "required": false
     },
     "approval_probe": {
@@ -40,6 +45,26 @@
       "description": "Enter on for the synthetic no-write approval probe. Leave off normally.",
       "required": false,
       "default": "off"
+    },
+    "transfer_enabled": {
+      "type": "boolean",
+      "title": "Enable approved media transfer",
+      "description": "Off by default. Requires one-time private setup and native in-Chat confirmation. Transfer only; no drafts or posting.",
+      "required": false,
+      "default": false
+    },
+    "transfer_config": {
+      "type": "file",
+      "title": "Private transfer config",
+      "description": "Owner-only JSON configured once by the authorized workspace operator; keep outside Drive and Git.",
+      "required": false
+    },
+    "transfer_key": {
+      "type": "string",
+      "title": "Dedicated Zernio credential",
+      "description": "Enter only here, never in Chat. Use the restricted credential approved for this workspace. Publishing-group authority is broader than this extension uses.",
+      "required": false,
+      "sensitive": true
     }
   },
   "tools_generated": true,
@@ -48,7 +73,7 @@
       "darwin"
     ],
     "runtimes": {
-      "node": ">=18.0.0"
+      "node": ">=22.0.0"
     }
   }
 }

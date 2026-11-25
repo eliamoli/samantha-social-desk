@@ -1,1 +1,13 @@
-{"name":"samantha-social-desk","private":true,"type":"module","version":"0.1.0","engines":{"node":">=22"},"scripts":{"test":"node --test test/*.test.mjs"}}
+{
+  "name": "samantha-social-desk",
+  "private": true,
+  "type": "module",
+  "version": "0.5.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "test:transfer": "node --test test/transfer.test.mjs test/transfer-stdio.test.mjs"
+  }
+}

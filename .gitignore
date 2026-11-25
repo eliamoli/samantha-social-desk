@@ -15,3 +15,8 @@ config.json
 *.receipt.json
 approved/
 .DS_Store
+
+transfer-config.json
+transfer-batch-*.json
+receipts.json
+transfer.lock

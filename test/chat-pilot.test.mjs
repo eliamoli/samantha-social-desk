@@ -1,3 +1,4 @@
+const macPersistenceOnly={skip:process.platform==='win32'?'Inherited POSIX persistence test requires macOS/Unix; no Windows permission emulation':false};
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawn} from 'node:child_process';
@@ -6,7 +7,7 @@ import os from 'node:os';
 import path from 'node:path';
 function rpc(home,mode,method,params){
  return new Promise((resolve,reject)=>{
-  const cp=spawn(process.execPath,['chat-pilot/server/index.mjs',mode],{env:{...process.env,HOME:home},stdio:['pipe','pipe','pipe']});
+  const cp=spawn(process.execPath,['chat-pilot/server/index.mjs',mode],{env:{...process.env,HOME:home,USERPROFILE:home},stdio:['pipe','pipe','pipe']});
   let out='',err='';cp.stdout.on('data',c=>out+=c);cp.stderr.on('data',x=>err+=x);
   cp.once('error',reject);cp.once('close',code=>{try{assert.equal(code,0,err);resolve(JSON.parse(out).result);}catch(e){reject(e);}});
   cp.stdin.end(JSON.stringify({jsonrpc:'2.0',id:1,method,params})+'\n');
@@ -29,7 +30,7 @@ test('default off, prompt and genuine cover file/text; explicit draft refused',a
  const manifest=(await import('node:fs/promises')).readFile('chat-pilot/manifest.json','utf8');
  assert.equal(JSON.parse(await manifest).user_config.pilot_mode.default,'off');
  const p=await rpc(h,'off','prompts/get',{name:'review_samantha_mock'});assert.match(p.messages[0].content.text,/this chat/);
- const listed=await rpc(h,'off','tools/list');assert.equal(listed.tools.length,1);
+ const listed=await rpc(h,'off','tools/list');assert.equal(listed.tools.length,2);
  const r=await tool(h,'off','review_samantha_mock_reel');
  assert.match(text(r),/1080|SHA-256/);assert.match(text(r),/Halifax/); assert.match(text(r),/instagram @synthetic-ig[\s\S]*facebook @synthetic-fb/);
  assert.equal(Buffer.from(r.content[1].data,'base64').readUInt32BE(16),1080);
@@ -37,7 +38,7 @@ test('default off, prompt and genuine cover file/text; explicit draft refused',a
  assert.match(text(await tool(h,'off',stage,proof(r))),/Preview-only/);
  assert.deepEqual(await readdir(h),[]);
 });
-test('cannot create without exact binding+phrase, or add a schedule; admits separate target mock once across processes',async t=>{
+test('cannot create without exact binding+phrase, or add a schedule; admits separate target mock once across processes',macPersistenceOnly,async t=>{
  const h=await fixture(t),r=await tool(h,'mock','review_samantha_mock_reel'),ig=proof(r),fb=proof(r,1);
  assert.match(text(await tool(h,'mock',stage,{...ig,reviewBinding:fb.reviewBinding})),/binding/);
  assert.match(text(await tool(h,'mock',stage,{...ig,confirmation:'no'})),/confirmation/);
@@ -50,7 +51,7 @@ test('cannot create without exact binding+phrase, or add a schedule; admits sepa
  assert.match(text(await tool(h,'mock',stage,fb)),/media thumbnail/);
  assert.match(text(await tool(h,'mock',recover,{platform:ig.platform,reviewBinding:ig.reviewBinding})),/MOCK VERIFIED/);
 });
-test('timeout after save persists across restarts and recovers once without another post',async t=>{
+test('timeout after save persists across restarts and recovers once without another post',macPersistenceOnly,async t=>{
  const h=await fixture(t),r=await tool(h,'mock-timeout','review_samantha_mock_reel'),ig=proof(r),{confirmation,...clean}=ig;
  assert.match(text(await tool(h,'mock-timeout',stage,ig)),/Simulated timeout/);
  assert.match(text(await tool(h,'mock-timeout',stage,ig)),/never resubmit/);

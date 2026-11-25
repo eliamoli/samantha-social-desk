@@ -6,6 +6,11 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {sha,inspect,execute,reconcile,requirePrivateDir} from '../../draft/core.mjs';
 import {fixtureTargets,profileId,draftId,mockProvider} from './mock.mjs';
+import {makeEngine,safeError} from '../../transfer/engine.mjs';
+let transferDecision=null;
+const transferEnabled=process.env.SAMANTHA_TRANSFER_ENABLED==='true';
+const transferEngine=makeEngine({enabled:transferEnabled,configFile:process.env.SAMANTHA_TRANSFER_CONFIG||'',folder:process.argv[3]||'',key:process.env.SAMANTHA_TRANSFER_KEY||'',state:path.join(os.homedir(),'Library','Application Support','Samantha Social Desk','transfer-v1')});
+delete process.env.SAMANTHA_TRANSFER_KEY;
 const mode=process.argv[2]||'off';
 if(!['off','mock','mock-timeout'].includes(mode))throw Error('Only offline mock modes are supported');
 const enabled=mode!=='off';
@@ -26,7 +31,15 @@ const create=spec('save_samantha_mock_draft','Create one synthetic draft, only a
 const read=spec('reconcile_samantha_mock_draft','Verify an already attempted synthetic draft using saved state; never creates another.',{platform:target,reviewBinding:hex},['platform','reviewBinding'],false);
 const local=spec('review_samantha_local_reel','Read one user-selected reel from the configured approved folder; shares caption and optional cover in this Chat, never the video bytes. No draft action.',{contentId:{type:'string',pattern:'^SJ-W[0-9]{2}-R[1-4]$'},textOnly:{type:'boolean'}},['contentId'],true);
 const probe=spec('probe_samantha_native_approval','Optional synthetic native approval test; does not save anything.',{},[],true);
-const catalog=[preview,...(folder?[local]:[]),...(enabled?[create,read]:[]),...(probeEnabled?[probe]:[])];
+const preflight=spec('preflight_samantha_transfer','Check local transfer setup without network calls or credentials in Chat.',{},[],true);
+const batchArgs={batchId:{type:'string',pattern:'^[A-Z0-9][A-Z0-9_-]{0,47}$'}};
+const transferReview=spec('review_samantha_transfer_batch','Read and validate one exact approved manifest and paired MP4/PNG inventory. No upload.',batchArgs,['batchId'],true);
+const transferRun=spec('transfer_samantha_approved_batch','Transfer only the exact reviewed approved batch after one native operator form. Reuse receipts and resume explicitly rejected parts. Never create posts or drafts.',{...batchArgs,reviewBinding:hex},['batchId','reviewBinding'],false);
+transferRun.annotations.openWorldHint=true;
+transferRun.annotations.idempotentHint=true;
+const transferReconcile=spec('reconcile_samantha_transfer_batch','Verify an ambiguous storage PUT by comparing returned bytes with its private receipt. No re-upload.',batchArgs,['batchId'],true);
+transferReconcile.annotations.openWorldHint=true;
+const catalog=[preview,preflight,...(transferEnabled?[transferReview,transferRun,transferReconcile]:[]),...(folder?[local]:[]),...(enabled?[create,read]:[]),...(probeEnabled?[probe]:[])];
 const provider=mockProvider(state,mode==='mock-timeout');
 function exact(args,allowed,required=[]){return args&&typeof args==='object'&&!Array.isArray(args)&&Object.keys(args).every(x=>allowed.includes(x))&&required.every(x=>Object.hasOwn(args,x));}
 function fail(m){throw Error(m);}
@@ -39,6 +52,17 @@ async function review(p){
 const asText=text=>({type:'text',text});
 const emit=result=>process.stdout.write(JSON.stringify({jsonrpc:'2.0',...result})+'\n');
 async function call(n,a){
+ if(n===preflight.name){if(!exact(a,[]))fail('Invalid preflight arguments');return [asText(JSON.stringify(await transferEngine.preflight(formCapable),null,2))];}
+ if([transferReview.name,transferRun.name,transferReconcile.name].includes(n)){
+  try{
+   const required=n===transferRun.name?['batchId','reviewBinding']:['batchId'];
+   if(!exact(a,required,required)||typeof a.batchId!=='string'||(n===transferRun.name&&!/^[a-f0-9]{64}$/.test(a.reviewBinding)))fail('Invalid transfer arguments');
+   if(n===transferRun.name&&(!initialized||!formCapable))fail('Native form confirmation unavailable. No transfer; a chat phrase cannot substitute.');
+   const r=n===transferReview.name?await transferEngine.review(a.batchId):n===transferReconcile.name?await transferEngine.reconcile(a.batchId):await transferEngine.transfer(a.batchId,a.reviewBinding,askTransfer);
+   return [asText(JSON.stringify(r,null,2))];
+  }catch(e){throw Error(e.message?.startsWith('Native form')?e.message:safeError(e));}
+ }
+
  if(n===local.name&&folder){
   if(!exact(a,['contentId','textOnly'],['contentId'])||typeof a.contentId!=='string'||(a.textOnly!==undefined&&typeof a.textOnly!=='boolean'))fail('Invalid local review arguments');
   const {view:v,cover,stem}=await inspect({...c,approvedFolder:folder},a.contentId,'instagram');
@@ -68,10 +92,20 @@ async function call(n,a){
   'Synthetic draft ID: '+result.draftId,'Revision: '+result.revision,'Review binding: '+r.reviewBinding,
   'Readback matched exact '+(a.platform==='instagram'?'instagramThumbnail':'media thumbnail')+' and video. No schedule or publication.'].join('\n'))];
 }
+async function askTransfer(view){
+ if(!formCapable||pending||transferDecision)return false;
+ return new Promise(resolve=>{
+  const requestId='transfer-approval-'+randomUUID();
+  const timer=setTimeout(()=>{if(transferDecision?.requestId===requestId){transferDecision=null;resolve(false);}},240000);
+  transferDecision={requestId,timer,resolve};
+  emit({id:requestId,method:'elicitation/create',params:{message:'Approve this exact transfer to '+view.destination+'? Review every filename, SHA-256 and size below. Only listed new/pending parts will upload. The sources remain unchanged. Temporary storage; no draft, post, schedule or cover assignment.\n'+JSON.stringify(view,null,2),requestedSchema:{type:'object',properties:{approveExactTransfer:{type:'boolean',title:'I approve this exact batch and destination',default:false}},required:['approveExactTransfer']}}});
+ });
+}
 async function dispatch(q){
  if(!q||q.jsonrpc!=='2.0')return emit({id:null,error:{code:-32600,message:'Invalid request'}});
  const {id,method,params}=q;
  if(typeof method!=='string'){
+  if(transferDecision?.requestId===id){const p=transferDecision;transferDecision=null;clearTimeout(p.timer);const x=q.result;p.resolve(!q.error&&x?.action==='accept'&&x.content?.approveExactTransfer===true&&exact(x.content,['approveExactTransfer']));return;}
   if(pending&&pending.requestId===id){const p=pending;pending=null;clearTimeout(p.timer);
    const x=q.result; const ok=!q.error&&x?.action==='accept'&&x.content?.approveExactDraft===true&&Object.keys(x.content).length===1;
    emit({id:p.id,result:{content:[asText(ok?'MOCK APPROVAL RECEIVED • no draft actually saved':'NO DRAFT CREATED • declined, cancelled, or unsupported response')]}});
@@ -85,7 +119,7 @@ async function dispatch(q){
    if(initialized)fail('Already initialized');
    initialized=true;const e=params?.capabilities?.elicitation;
    formCapable=!!(e&&typeof e==='object'&&!Array.isArray(e)&&(Object.hasOwn(e,'form')||Object.keys(e).length===0));
-   result={protocolVersion:['2025-11-25','2025-06-18','2025-03-26','2024-11-05'].includes(params?.protocolVersion)?params.protocolVersion:'2025-11-25',capabilities:{tools:{},prompts:{}},serverInfo:{name:'samantha-social-desk-chat-pilot',version:'0.4.0'}};
+   result={protocolVersion:['2025-11-25','2025-06-18','2025-03-26','2024-11-05'].includes(params?.protocolVersion)?params.protocolVersion:'2025-11-25',capabilities:{tools:{},prompts:{}},serverInfo:{name:'samantha-social-desk-chat-pilot',version:'0.5.0'}};
   }
   else if(method==='ping')result={};
   else if(method==='tools/list')result={tools:catalog};
@@ -112,4 +146,4 @@ readline.createInterface({input:process.stdin,crlfDelay:Infinity}).on('line',lin
  void dispatch(q);
 });
 
-process.stdin.on('end',()=>{if(pending){clearTimeout(pending.timer);pending=null;}});
+process.stdin.on('end',()=>{if(transferDecision){clearTimeout(transferDecision.timer);transferDecision.resolve(false);transferDecision=null;}if(pending){clearTimeout(pending.timer);pending=null;}});

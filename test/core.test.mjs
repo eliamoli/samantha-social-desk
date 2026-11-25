@@ -1,3 +1,4 @@
+const macPersistenceOnly={skip:process.platform==='win32'?'Inherited POSIX persistence test requires macOS/Unix; no Windows permission emulation':false};
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs/promises';
@@ -35,7 +36,7 @@ function fake({view,...mod}){
     createDraft:async (b,key)=>{calls.push('create');assert.match(key,/^[a-f0-9-]{36}$/);body=b;return {_id:draftId};},
     getDraft:async d=>{calls.push('get');assert.equal(d,draftId);return post(body);},...mod};
 }
-for(const p of ['instagram','facebook'])test(p+' exact approved payload & receipt; same ID never creates again',async t=>{
+for(const p of ['instagram','facebook'])test(p+' exact approved payload & receipt; same ID never creates again',macPersistenceOnly,async t=>{
   const {args,view,put}=await fixture(t,p);
   const provider=fake({view});
   assert.deepEqual(await execute({...args,provider}),{draftId,state:'verified-draft',contentId,revision:1,platform:p});
@@ -49,7 +50,7 @@ for(const p of ['instagram','facebook'])test(p+' exact approved payload & receip
   await assert.rejects(execute({...args,approvedBinding:binding,provider}),/never resubmit/);
   assert.equal(provider.calls.filter(x=>x==='create').length,1);
 });
-test('changed caption or outside account cannot upload',async t=>{
+test('changed caption or outside account cannot upload',macPersistenceOnly,async t=>{
   const {args,view,put}=await fixture(t);
   const provider=fake({view});
   await put(1,'Changed.');await assert.rejects(execute({...args,provider}),/changed/);
@@ -58,7 +59,7 @@ test('changed caption or outside account cannot upload',async t=>{
   await assert.rejects(execute({...args,provider:{...provider,accounts:async()=>[{_id:aid,profileId:fid,platform,username:view.username,isActive:true}]}}),/exact active/);
   assert.deepEqual(provider.calls,[]);
 });
-test('timed-out write is durably held; exact draft can be reconciled without another POST',async t=>{
+test('timed-out write is durably held; exact draft can be reconciled without another POST',macPersistenceOnly,async t=>{
   const {args,view}=await fixture(t);
   let sends=0;
   const provider=fake({view,createDraft:async()=>{sends++;throw Error('network lost');},getDraft:async()=>post(compileDraft(view,videoUrl,coverUrl))});
@@ -78,7 +79,7 @@ test('wrong thumbnail, scheduled readback or populated mismatched account blocks
   wrong.platforms[0].accountId={_id:fid};
   assert.throws(()=>verifyDraft(wrong,body,draftId),/destination/);
 });
-test('concurrency cannot produce two posts and symlink media is rejected',async t=>{
+test('concurrency cannot produce two posts and symlink media is rejected',macPersistenceOnly,async t=>{
   const {args,view}=await fixture(t);
   const f=path.join(args.c.approvedFolder,contentId+'-v1.mp4');
   await fs.rename(f,f+'.saved');await fs.symlink(f+'.saved',f);

@@ -1,3 +1,4 @@
+const macPersistenceOnly={skip:process.platform==='win32'?'Inherited POSIX persistence test requires macOS/Unix; no Windows permission emulation':false};
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as fs from 'node:fs/promises';
@@ -44,7 +45,7 @@ async function setup(t,scenario={}){
  const permit=async p=>{const {challenge}=await gate().review(id,p);return {...challenge,signature:sign(null,approvalBytes(challenge),privateKey).toString('base64url')};};
  return {gate,permit,c,calls,advance:()=>now+=300000,post:()=>post,getDraft:provider.getDraft,now:()=>now};
 }
-for(const p of ['instagram','facebook']) test('signed review through HTTP adapter and '+p+' cover readback',async t=>{
+for(const p of ['instagram','facebook']) test('signed review through HTTP adapter and '+p+' cover readback',macPersistenceOnly,async t=>{
  const x=await setup(t),a=await x.permit(p);
  const other=await x.permit(p==='facebook'?'instagram':'facebook');
  await assert.rejects(x.gate().draft(id,p,other),/changed/);
@@ -57,13 +58,13 @@ for(const p of ['instagram','facebook']) test('signed review through HTTP adapte
  assert.equal(x.calls.filter(a=>a==='POST /api/v1/posts').length,1);
  await assert.rejects(x.gate().draft(id,p,a),/never resubmit/);
 });
-test('stale permit and wrong-account response stop before media transfer',async t=>{
+test('stale permit and wrong-account response stop before media transfer',macPersistenceOnly,async t=>{
  const x=await setup(t,{wrongProfile:true}),a=await x.permit('instagram');
  await assert.rejects(x.gate().draft(id,'instagram',a),/exact active/);
  x.advance();await assert.rejects(x.gate().draft(id,'instagram',a),/expired/);
  assert.deepEqual(x.calls,['GET /api/v1/accounts']);
 });
-test('timeout after POST holds ledger, reconciles ID, and expired cover cannot promote',async t=>{
+test('timeout after POST holds ledger, reconciles ID, and expired cover cannot promote',macPersistenceOnly,async t=>{
  const x=await setup(t,{timeout:true}),a=await x.permit('instagram');
  await assert.rejects(x.gate().draft(id,'instagram',a),/Simulated response lost/);
  await assert.rejects(x.gate().draft(id,'instagram',a),/never resubmit/);

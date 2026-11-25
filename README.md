@@ -2,6 +2,7 @@
 Private Samantha-only Mac pilot. Do not copy Bridgerow's account, profile, credentials, posting history or schedules.
 
 ## Readiness
+- **0.5.0 local transfer build:** [one-time setup, weekly Chat usage and remaining activation tests](TRANSFER.md). Optional approved paired-media transfer with native confirmation and durable receipts; default off. Includes an internal no-network paired-cover payload check, not live cover attachment. No release published.
 - **Consolidated v0.4.0:** see [Install and test in ordinary Claude Chat](chat-pilot/INSTALL.md). Local folder reviews are opt-in and read-only. Mock draft and native approval rehearsal remain separate from real file review. No live provider code is in the bundle.
 - Offline MCPB preview emits a synthetic PNG, sample caption and Halifax time, plus a second simulated in-chat draft report, as ordinary MCP image/text. See [Mac Chat verification](preview/README.md). Install and presentation on a real Mac have not been verified.
 - Draft-only core, provider adapter and Mac Keychain helper are mock-tested, not wired to either Chat or the pilot CLI. No live credentials, uploads, schedules or publishing were used.
@@ -19,7 +20,7 @@ Use owner-only app data directory ~/Library/Application Support/Samantha Social 
       }
     }
 
-Do not guess IDs or scope. Copy the approved assets from private Drive to the real local folder; do not make Drive public. Sample input names: SJ-W03-R1.json, SJ-W03-R1-v1.mp4, SJ-W03-R1-v1.png. The PNG must be 1080 × 1920, at most 10 MiB. MP4 max 120 MiB. Header validation is not a playback check. Example manifest:
+Do not guess IDs or scope. For 0.5 transfer, configure private Drive-for-desktop synced bytes as described in TRANSFER.md; do not make Drive public or manually move originals. The following older local-review contract remains separate. Sample input names: SJ-W03-R1.json, SJ-W03-R1-v1.mp4, SJ-W03-R1-v1.png. The PNG must be 1080 × 1920, at most 10 MiB. MP4 max 120 MiB. Header validation is not a playback check. Example manifest:
 
     {"contentId":"SJ-W03-R1","revision":1,"caption":"Approved caption for this exact reel."}
 
