@@ -2,10 +2,11 @@
 Private Samantha-only Mac pilot. Do not copy Bridgerow's account, profile, credentials, posting history or schedules.
 
 ## Readiness
+- **0.6.0 local draft-only build:** [paired-cover draft setup and usage](DRAFTS.md). Separately opt in, native-confirm one unscheduled draft per reel for both pinned IG/FB accounts, then verify cover fields and exact media bytes. No schedule/publish/edit route. Actual Mac/native preview activation remains unverified.
 - **0.5.0 local transfer build:** [one-time setup, weekly Chat usage and remaining activation tests](TRANSFER.md). Optional approved paired-media transfer with native confirmation and durable receipts; default off. Includes an internal no-network paired-cover payload check, not live cover attachment. No release published.
 - **Consolidated v0.4.0:** see [Install and test in ordinary Claude Chat](chat-pilot/INSTALL.md). Local folder reviews are opt-in and read-only. Mock draft and native approval rehearsal remain separate from real file review. No live provider code is in the bundle.
 - Offline MCPB preview emits a synthetic PNG, sample caption and Halifax time, plus a second simulated in-chat draft report, as ordinary MCP image/text. See [Mac Chat verification](preview/README.md). Install and presentation on a real Mac have not been verified.
-- Draft-only core, provider adapter and Mac Keychain helper are mock-tested, not wired to either Chat or the pilot CLI. No live credentials, uploads, schedules or publishing were used.
+- The earlier provider adapter and Mac Keychain helper remain isolated and mock-tested. Version 0.6 reuses the pure draft compiler and readback checks through its separate fixed draft-only transport. No live credentials, uploads, schedules or publishing were used.
 - The pilot CLI reviews one exact local draft package without external calls; it is a developer fixture, never part of Samantha’s workflow. Node 22+, no npm dependencies or install steps. Run tests with: npm test.
 
 ## Local review
@@ -31,7 +32,8 @@ Use fully QA-approved files only. Bump the revision for changes. Review each des
 
 Output includes the local SHA-256 binding for exact caption, media, cover, profile, account, and revision. It does not create a draft.
 
-## Draft-only design
+## Earlier isolated draft adapter design
+The 0.6 in-Chat native-confirmed path is documented in DRAFTS.md. These notes describe the earlier isolated adapter.
 A future human approval entry point outside Claude must bind the exact reviewed package and pass that binding to execute(). A hash supplied by an agent is not human approval. Before transfer, execute() recalculates the binding and checks the provider-returned active connected profile/account/handle. It saves a durable reservation per content ID and platform before uploads, and synchronizes an attempt with a unique idempotency key before the only POST. If a send is uncertain or the readback omits a cover, stop; do not delete the reservation or recreate the post. Reconciliation requires the exact locally known or independently found draft ID and verifies the saved media/caption/account. It never sends another POST; remote edits are not implemented.
 
 The provider transport allows only an account lookup, media presign, presigned PUT to the confirmed exact storage host, draft POST, and readback. No redirects; no bearer on the presigned storage PUT. The POST requires explicit isDraft true and one approved destination, with no publish, schedule or queue fields. Instagram uses platformSpecificData.instagramThumbnail and Facebook uses mediaItems[0].thumbnail and contentType reel. Exact cover readback does not prove native cover display. Zernio-hosted draft bytes may expire: confirm preview/playback later. Scope the provider credential to Samantha's profile, no Bridgerow access, store it in Mac Keychain, never console, arguments, environment file, Chat or Git. The provider credential itself is not assumed draft-only.

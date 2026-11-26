@@ -47,6 +47,13 @@ export function makeEngine({enabled,configFile,folder,key,state,send=globalThis.
     return locked(async()=>view(c,inv,states(c,inv,await ledger(c))));
   }
   return {
+    async withDraftBatch(batchId,fn) {
+      check(enabled,'TRANSFER_DISABLED');
+      return locked(async()=>{
+        const snapshot=async()=>{const c=await settings(),inv=await inventory(c,batchId),l=await ledger(c),items=states(c,inv,l);check(items.every(p=>p.status==='complete'),'DRAFT_REQUIRES_COMPLETE_UNEXPIRED_BATCH');return {c,inv,receipts:inv.parts.map(p=>structuredClone(l.parts[partId(c,p)]))};};
+        return fn(await snapshot(),snapshot);
+      });
+    },
     async preflight(formCapable) {
       const result={enabled,nativeConfirmation:formCapable,source:'Drive for desktop: real, stable, readable approved folder required. No Claude Drive connector byte access.',setup:'Configure the private transfer config and sensitive installer credential once; no weekly picker.',ready:false};
       if(!enabled)return result;

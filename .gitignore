@@ -20,3 +20,7 @@ transfer-config.json
 transfer-batch-*.json
 receipts.json
 transfer.lock
+
+draft-config.json
+*.draft.json
+draft.lock

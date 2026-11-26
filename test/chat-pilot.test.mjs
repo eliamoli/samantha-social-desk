@@ -30,7 +30,7 @@ test('default off, prompt and genuine cover file/text; explicit draft refused',a
  const manifest=(await import('node:fs/promises')).readFile('chat-pilot/manifest.json','utf8');
  assert.equal(JSON.parse(await manifest).user_config.pilot_mode.default,'off');
  const p=await rpc(h,'off','prompts/get',{name:'review_samantha_mock'});assert.match(p.messages[0].content.text,/this chat/);
- const listed=await rpc(h,'off','tools/list');assert.equal(listed.tools.length,2);
+ const listed=await rpc(h,'off','tools/list');assert.equal(listed.tools.length,3);
  const r=await tool(h,'off','review_samantha_mock_reel');
  assert.match(text(r),/1080|SHA-256/);assert.match(text(r),/Halifax/); assert.match(text(r),/instagram @synthetic-ig[\s\S]*facebook @synthetic-fb/);
  assert.equal(Buffer.from(r.content[1].data,'base64').readUInt32BE(16),1080);

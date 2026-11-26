@@ -3,7 +3,8 @@ set -eu
 cd "$(dirname "$0")/.."
 mkdir -p dist
 python3 - <<'PY'
-import pathlib, zipfile, hashlib
+import pathlib, zipfile, hashlib, json
+assert json.loads(pathlib.Path('chat-pilot/manifest.json').read_text())['version']=='0.5.0', 'Use the 0.5 branch to rebuild 0.5'
 files={'manifest.json':'chat-pilot/manifest.json','INSTALL.md':'chat-pilot/INSTALL.md','TRANSFER.md':'TRANSFER.md'}
 for p in ('draft/core.mjs','chat-pilot/server/index.mjs','chat-pilot/server/mock.mjs'):
  files[p]=p

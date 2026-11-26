@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 Set-Location (Join-Path $PSScriptRoot '..')
+if ((Get-Content -Raw chat-pilot/manifest.json | ConvertFrom-Json).version -ne '0.5.0') {throw 'Use the 0.5 branch to rebuild 0.5; this guard preserves its artifact'}
 Add-Type -AssemblyName System.IO.Compression
 $files = [ordered]@{
  'manifest.json'='chat-pilot/manifest.json'

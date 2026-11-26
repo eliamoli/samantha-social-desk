@@ -15,7 +15,7 @@ const invoke=(c,id,name,args={})=>c.send({id,method:'tools/call',params:{name,ar
 test('consolidated extension exposes read-only opted-in files, not arbitrary paths or real draft routes',async t=>{
  const folder=await realpath('chat-pilot/server/fixtures');
  const c=await driver(t,'off',folder,'off');
- c.send({id:1,method:'tools/list'});assert.deepEqual((await c.get()).result.tools.map(t=>t.name),['review_samantha_mock_reel','preflight_samantha_transfer','review_samantha_local_reel']);
+ c.send({id:1,method:'tools/list'});assert.deepEqual((await c.get()).result.tools.map(t=>t.name),['review_samantha_mock_reel','preflight_samantha_transfer','preflight_samantha_drafts','review_samantha_local_reel']);
  invoke(c,2,'review_samantha_local_reel',{contentId:valid});
  const r=await c.get();assert.match(text(r),/LOCAL REVIEW ONLY/);assert.match(text(r),/caption/i);
  assert.equal(r.result.content[1].mimeType,'image/png');
@@ -24,7 +24,7 @@ test('consolidated extension exposes read-only opted-in files, not arbitrary pat
 });
 test('optional integrated native probe has no write result and needs distinct transport response',async t=>{
  const c=await driver(t,'off','','on');
- c.send({id:1,method:'initialize',params:{capabilities:{elicitation:{form:{}}}}});assert.equal((await c.get()).result.serverInfo.version,'0.5.0');
+ c.send({id:1,method:'initialize',params:{capabilities:{elicitation:{form:{}}}}});assert.equal((await c.get()).result.serverInfo.version,'0.6.0');
  invoke(c,2,'probe_samantha_native_approval',{approveExactDraft:true});
  assert((await c.get()).result.isError);
  invoke(c,3,'probe_samantha_native_approval');

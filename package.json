@@ -2,12 +2,13 @@
   "name": "samantha-social-desk",
   "private": true,
   "type": "module",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "test:transfer": "node --test test/transfer.test.mjs test/transfer-stdio.test.mjs"
+    "test:transfer": "node --test test/transfer.test.mjs test/transfer-stdio.test.mjs",
+    "test:draft": "node --test test/paired-draft.test.mjs test/paired-draft-stdio.test.mjs"
   }
 }

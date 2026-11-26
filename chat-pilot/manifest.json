@@ -2,8 +2,8 @@
   "manifest_version": "0.3",
   "name": "samantha-social-desk-chat-pilot",
   "display_name": "Samantha Social Desk",
-  "version": "0.5.0",
-  "description": "Local reel preview and optional approved media transfer inside ordinary Claude Desktop Chat.",
+  "version": "0.6.0",
+  "description": "Reel preview, optional approved media transfer and separately confirmed draft-only cover attachment in Claude Chat.",
   "author": {
     "name": "Bridgerow"
   },
@@ -21,7 +21,10 @@
       "env": {
         "SAMANTHA_TRANSFER_ENABLED": "${user_config.transfer_enabled}",
         "SAMANTHA_TRANSFER_CONFIG": "${user_config.transfer_config}",
-        "SAMANTHA_TRANSFER_KEY": "${user_config.transfer_key}"
+        "SAMANTHA_TRANSFER_KEY": "${user_config.transfer_key}",
+        "SAMANTHA_DRAFT_ENABLED": "${user_config.draft_enabled}",
+        "SAMANTHA_DRAFT_CONFIG": "${user_config.draft_config}",
+        "SAMANTHA_DRAFT_KEY": "${user_config.draft_key}"
       }
     }
   },
@@ -63,6 +66,26 @@
       "type": "string",
       "title": "Dedicated Zernio credential",
       "description": "Enter only here, never in Chat. Use the restricted credential approved for this workspace. Publishing-group authority is broader than this extension uses.",
+      "required": false,
+      "sensitive": true
+    },
+    "draft_enabled": {
+      "type": "boolean",
+      "title": "Enable paired draft creation",
+      "description": "Separately opt in after authorized setup. Native approval required for one unscheduled draft containing both pinned accounts and the paired cover. Never schedules or publishes.",
+      "required": false,
+      "default": false
+    },
+    "draft_config": {
+      "type": "file",
+      "title": "Private exact draft account pins",
+      "description": "Owner-only local JSON with verified profile and Instagram/Facebook account IDs, usernames and credential pin.",
+      "required": false
+    },
+    "draft_key": {
+      "type": "string",
+      "title": "Dedicated Zernio draft credential",
+      "description": "Sensitive field only, never Chat. This is not a vendor draft-only key: publishing authority is broader. The extension submits only explicit unscheduled drafts and needs configured account reads.",
       "required": false,
       "sensitive": true
     }

@@ -14,8 +14,9 @@ $manifest=Get-Content -Raw -LiteralPath (Join-Path $extract 'manifest.json') | C
 if($manifest.version -ne '0.5.0' -or $manifest.user_config.transfer_enabled.default -ne $false -or $manifest.user_config.transfer_key.sensitive -ne $true){throw 'Unsafe manifest defaults'}
 if($manifest.compatibility.platforms[0] -ne 'darwin'){throw 'Wrong target platform'}
 $env:SJ_BUNDLE_ENTRY=Join-Path $extract $manifest.server.entry_point
+$env:SJ_EXPECTED_VERSION='0.5.0'
 try {
  node --test test/transfer-stdio.test.mjs
  if($LASTEXITCODE -ne 0){throw 'Extracted bundle stdio tests failed'}
-} finally {Remove-Item Env:SJ_BUNDLE_ENTRY -ErrorAction SilentlyContinue}
+} finally {Remove-Item Env:SJ_BUNDLE_ENTRY,Env:SJ_EXPECTED_VERSION -ErrorAction SilentlyContinue}
 Write-Output ('PASS: extracted archive/config/entry point; six stdio acceptance cases. Extracted evidence retained at '+$extract)

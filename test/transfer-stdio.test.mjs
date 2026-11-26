@@ -6,6 +6,7 @@ import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import {once} from 'node:events';
 import {pathToFileURL} from 'node:url';
+const expectedVersion=process.env.SJ_EXPECTED_VERSION||'0.6.0';
 import {fixture} from './transfer-fixture.mjs';
 async function driver(t,f,{enabled=true,form=true,options={}}={}) {
  const entry=process.env.SJ_BUNDLE_ENTRY||path.resolve('chat-pilot/server/index.mjs');
@@ -21,7 +22,7 @@ async function driver(t,f,{enabled=true,form=true,options={}}={}) {
  const get=async()=>{const next=await lines.next();assert(!next.done,error);return JSON.parse(next.value);};
  async function call(name,args={}){send({id:++id,method:'tools/call',params:{name,arguments:args}});return get();}
  send({id:++id,method:'initialize',params:{protocolVersion:'2025-11-25',capabilities:form?{elicitation:{form:{}}}:{}}});
- assert.equal((await get()).result.serverInfo.version,'0.5.0');
+ assert.equal((await get()).result.serverInfo.version,expectedVersion);
  return {send,get,call,close,child};
 }
 const parsed=r=>JSON.parse(r.result.content[0].text);
@@ -69,7 +70,7 @@ test('stdio rejects no native capability, forged approval tool args, and extra s
 test('stdio disabled default lists benign preflight and preserves local preview; no transfer route',async t=>{
  const f=await fixture(t),d=await driver(t,f,{enabled:false});
  d.send({id:99,method:'tools/list'});const tools=(await d.get()).result.tools.map(t=>t.name);
- assert.deepEqual(tools,['review_samantha_mock_reel','preflight_samantha_transfer','review_samantha_local_reel']);
+ assert.deepEqual(tools,['review_samantha_mock_reel','preflight_samantha_transfer',...(expectedVersion==='0.5.0'?[]:['preflight_samantha_drafts']),'review_samantha_local_reel']);
  assert.equal(parsed(await d.call('preflight_samantha_transfer')).enabled,false);
  assert((await d.call('review_samantha_transfer_batch',{batchId:f.batch.batchId})).result.isError);
 });
